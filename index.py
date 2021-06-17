@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__, template_folder="views", static_folder="public", static_url_path="/")
 
@@ -13,7 +13,7 @@ def view():
     token = request.form.get("token")
     image = request.files.get("image")
     print(token, image)
-    return render_template("index.html")
+    return jsonify({})
 
 
 if __name__ == "__main__":
