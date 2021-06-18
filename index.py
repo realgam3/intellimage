@@ -1,11 +1,11 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, jsonify
 
 app = Flask(__name__, template_folder="views", static_folder="public", static_url_path="/")
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return app.send_static_file('index.html')
 
 
 @app.route("/view", methods=["POST"])
