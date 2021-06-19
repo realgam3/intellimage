@@ -5,7 +5,7 @@ from exiftool import ExifTool
 from flask import Flask, request, jsonify
 
 app = Flask(__name__, template_folder="views", static_folder="public", static_url_path="/")
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024
 secret = os.getenv("SECRET") or "BSidesTLV2021{This_Is_Not_The_Flag}"
 if len(secret) < 35:
     raise Exception("Secret size should be 36 or above")
@@ -46,32 +46,44 @@ def view():
     if not token:
         return jsonify({"error": "empty token"})
 
-    image = request.files.get("image")
-    if not image:
+    images = request.files.getlist("image[]")
+    if not images:
         return jsonify({"error": "empty image"})
 
-    if not image.mimetype.startswith("image/"):
-        return jsonify({"error": "bad image"})
+    image_streams = []
+    mac = hashlib.sha1(secret.encode())
+    for image in images:
+        if not image.mimetype.startswith("image/"):
+            return jsonify({"error": "bad image"})
 
-    image_stream = image.stream.read()
-    mac = hashlib.sha1(secret.encode() + hashlib.sha1(image_stream).digest()).hexdigest()
-    if token == mac:
+        image_stream = image.stream.read()
+        mac.update(image_stream)
+        image_streams.append(image_stream)
+
+    metadata = []
+    print(mac.hexdigest())
+    if token == mac.hexdigest():
         try:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                tmp.write(image_stream)
-                tmp.flush()
-                tmp.close()
-
+            for i, image_stream in enumerate(image_streams):
                 with ExifTool() as et:
-                    metadata = et.get_metadata(tmp.name)
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                        tmp.write(image_stream)
+                        tmp.flush()
+                        tmp.close()
 
-                os.unlink(tmp.name)
+                        parsed_metadata = {
+                            "SourceFile": images[i].filename,
+                            **parse_metadata(et.get_metadata(tmp.name), filter_keys=["File", "SourceFile"])
+                        }
+                        metadata.append(parsed_metadata)
+
+                    os.unlink(tmp.name)
         except Exception as ex:
             return jsonify({
                 "error": str(ex)
             })
 
-        return jsonify(parse_metadata(metadata, filter_keys=["File", "SourceFile"]))
+        return jsonify(metadata[0] if len(metadata) < 2 else metadata)
 
     return jsonify({"error": "bad token"})
 

@@ -38,7 +38,7 @@
         <div id="drop" class="container bg-secondary text-light text-center mt-4 p-5 rounded fw-bold">
             <h2 class="display-6">Drop image files here</h2>
             <button @click="select" class="btn btn-warning m-4 p-2">or select</button>
-            <input id="image" name="image" type="file" accept="image/*" hidden>
+            <input id="image" name="image[]" type="file" accept="image/*" multiple hidden>
         </div>
 
         <div class="container my-4">
@@ -94,16 +94,22 @@
 
                 app.error = null;
                 app.result = null;
-                let error = null;
 
+                let error = null;
                 const body = new FormData($("#body"));
-                if (!body.get("token")) {
+                const token = body.get("token");
+                const images = body.getAll("image[]");
+                const imagesSize = images.reduce((a, b) => {
+                    return a + b.size
+                }, 0);
+
+                if (!token) {
                     error = "empty token";
-                } else if (body.get("token").length < 40) {
+                } else if (token < 40) {
                     error = "bad token";
-                } else if (!body.get("image").size) {
+                } else if (!imagesSize) {
                     error = "empty image";
-                } else if (body.get("image").size > 45 * 1024) {
+                } else if (imagesSize > 90 * 1024) {
                     error = "image is too big";
                 }
                 if (error) {
