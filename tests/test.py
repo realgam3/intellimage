@@ -2,8 +2,8 @@ import unittest
 import requests
 
 
-class Test(unittest.TestCase):
-    def test(self):
+class TestIntellimage(unittest.TestCase):
+    def test_view(self):
         with open("VEVAK.png", "rb") as f:
             res = requests.post(
                 url="http://localhost.realgame.co.il:5000/view",
