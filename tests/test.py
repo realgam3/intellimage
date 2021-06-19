@@ -18,4 +18,4 @@ class TestIntellimage(unittest.TestCase):
                     "token": "4e4bad2093c856bfdabaf852d77c64bd06ec17a3"
                 }
             )
-        self.assertNotIn('error', res.json())
+        self.assertNotIn("error", res.json())
