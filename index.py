@@ -8,7 +8,7 @@ app = Flask(__name__, template_folder="views", static_folder="public", static_ur
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024
 secret = os.getenv("SECRET") or "BSidesTLV2021{This_Is_Not_The_Flag}"
 if len(secret) < 35:
-    raise Exception("Secret size should be 36 or above")
+    raise Exception("Secret size should be 35 or above")
 
 
 def parse_metadata(metadata, filter_keys=None):
