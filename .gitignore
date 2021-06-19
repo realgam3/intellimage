@@ -92,3 +92,4 @@ ENV/
 .idea/
 /Pipfile
 /Pipfile.lock
+exiftool.exe
