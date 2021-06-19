@@ -61,7 +61,6 @@ def view():
         image_streams.append(image_stream)
 
     metadata = []
-    print(mac.hexdigest())
     if token == mac.hexdigest():
         try:
             for i, image_stream in enumerate(image_streams):
