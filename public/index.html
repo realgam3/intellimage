@@ -25,7 +25,7 @@
     </div>
 </nav>
 
-<div id="app" class="container-fluid" @dragenter="ignore" @dragover="ignore" @dragover="ignore" @drop="drop">
+<div id="app" class="container-fluid" @dragenter="ignore" @dragover="ignore" @dragleave="ignore" @drop="drop">
     <div class="container-fluid bg-light text-dark text-center p-1">
         <div class="container">
             <h1 class="display-4 fw-bold">Intellimage</h1>
@@ -97,7 +97,7 @@
 
                 let error = null;
                 const body = new FormData($("#body"));
-                const token = body.get("token");
+                const token = body.get("token").trim();
                 const images = body.getAll("image[]");
                 const imagesSize = images.reduce((a, b) => {
                     return a + b.size
@@ -105,7 +105,7 @@
 
                 if (!token) {
                     error = "empty token";
-                } else if (token < 40) {
+                } else if (token.length < 40) {
                     error = "bad token";
                 } else if (!imagesSize) {
                     error = "empty image";
