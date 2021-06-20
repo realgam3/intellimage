@@ -37,7 +37,7 @@ def parse_metadata(metadata, filter_keys=None):
 
 @app.route("/")
 def index():
-    return app.send_static_file('index.html')
+    return app.send_static_file("index.html")
 
 
 @app.route("/view", methods=["POST"])
@@ -60,31 +60,33 @@ def view():
         mac.update(image_stream)
         image_streams.append(image_stream)
 
+    if token != mac.hexdigest():
+        return jsonify({"error": "bad token"})
+
     metadata = []
-    if token == mac.hexdigest():
-        try:
+    try:
+        with ExifTool() as et:
             for i, image_stream in enumerate(image_streams):
-                with ExifTool() as et:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        tmp.write(image_stream)
-                        tmp.flush()
-                        tmp.close()
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(image_stream)
+                    tmp.flush()
+                    tmp.close()
 
-                        parsed_metadata = {
-                            "SourceFile": images[i].filename,
-                            **parse_metadata(et.get_metadata(tmp.name), filter_keys=["File", "SourceFile"])
-                        }
-                        metadata.append(parsed_metadata)
+                    parsed_metadata = {
+                        "SourceFile": images[i].filename,
+                        **parse_metadata(et.get_metadata(tmp.name), filter_keys=["File", "SourceFile"])
+                    }
+                    metadata.append(parsed_metadata)
 
+                try:
                     os.unlink(tmp.name)
-        except Exception as ex:
-            return jsonify({
-                "error": str(ex)
-            })
+                except Exception as ex:
+                    pass
 
-        return jsonify(metadata[0] if len(metadata) < 2 else metadata)
+    except Exception as ex:
+        return jsonify({"error": str(ex)})
 
-    return jsonify({"error": "bad token"})
+    return jsonify(metadata[0] if len(metadata) < 2 else metadata)
 
 
 if __name__ == "__main__":
