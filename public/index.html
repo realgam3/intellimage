@@ -107,7 +107,7 @@
                     this.errors.push("image is too big");
                 }
 
-                return !!this.errors.length;
+                return !this.errors.length;
             },
             view: async function (e) {
                 e.preventDefault();
@@ -116,7 +116,7 @@
                 this.result = null;
 
                 const body = new FormData(e.target);
-                if (this.validate(body)) {
+                if (!this.validate(body)) {
                     return;
                 }
 
