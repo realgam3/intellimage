@@ -11,6 +11,7 @@ RUN pip install -r requirements.txt
 RUN pip install gunicorn
 
 # Install ExifTool
+RUN apt-get update && apt-get install -y libarchive-zip-perl libposix-strptime-perl libunicode-linebreak-perl
 RUN tar xzf Image-ExifTool-12.23.tar.gz && rm -fr Image-ExifTool-12.23.tar.gz
 
 # Set non root user
