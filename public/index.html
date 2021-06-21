@@ -34,42 +34,43 @@
         </div>
     </div>
 
-    <form enctype="multipart/form-data" method="post" id="body" class="form form-control">
+    <form enctype="multipart/form-data" method="post" class="form form-control" @submit="view">
         <div id="drop" class="container bg-secondary text-light text-center mt-4 p-5 rounded fw-bold">
             <h2 class="display-6">Drop image files here</h2>
             <button @click="select" class="btn btn-warning m-4 p-2">or select</button>
-            <input id="image" name="image[]" type="file" accept="image/*" multiple hidden>
+            <input ref="image" name="image[]" type="file" accept="image/*" multiple hidden>
         </div>
 
         <div class="container my-4">
             <div class="row">
                 <label for="token" class="col-form-label">API Token:</label>
                 <div class="col-10">
-                    <input id="token" name="token" class="form-control form-control-lg" type="text" placeholder="token"
-                           aria-label="token">
+                    <input id="token" name="token" v-model.trim="token" class="form-control form-control-lg" type="text"
+                           placeholder="token" aria-label="token">
                 </div>
                 <div class="col-2">
-                    <button type="submit" @click="view" class="btn btn-lg btn-primary col-10">View</button>
+                    <button type="submit" @submit="view" class="btn btn-lg btn-primary col-10">View</button>
                 </div>
             </div>
         </div>
     </form>
 
-    <template v-if="result || error">
-        <div class="container py-4">
-            <div v-if="result">
-                <div class="alert alert-success fw-bold" role="alert">
-                    <h3 class="fw-bold">Result:</h3>
-                    <pre style="font-size: 1.2rem"><code>{{ JSON.stringify(result, null, 2) }}</code></pre>
-                </div>
+    <div class="container py-4">
+        <template v-if="result">
+            <div class="alert alert-success fw-bold" role="alert">
+                <h3 class="fw-bold">Result:</h3>
+                <pre style="font-size: 1.2rem"><code>{{ JSON.stringify(result, null, 2) }}</code></pre>
             </div>
-            <div v-if="error">
-                <div class="alert alert-danger" role="alert">
-                    <h3><span class="fw-bold">Error:</span> {{ error }} </h3>
-                </div>
+        </template>
+        <template v-if="errors.length">
+            <div class="alert alert-danger" role="alert">
+                <h3><span class="fw-bold">Errors:</span></h3>
+                <ul>
+                    <li v-for="error in errors" style="font-size: 1.2rem">{{ error }}</li>
+                </ul>
             </div>
-        </div>
-    </template>
+        </template>
+    </div>
 </div>
 
 <script src="//cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
@@ -81,70 +82,75 @@
         crossorigin="anonymous"></script>
 
 <script type="application/javascript">
-    const $ = document.querySelector.bind(document);
     const app = new Vue({
         el: "#app",
         data: {
-            error: null,
-            result: null
+            token: "",
+            errors: [],
+            result: null,
         },
         methods: {
-            view: async (e) => {
-                e.preventDefault();
-
-                app.error = null;
-                app.result = null;
-
-                let error = null;
-                const body = new FormData($("#body"));
-                const token = body.get("token").trim();
-                const images = body.getAll("image[]");
-                const imagesSize = images.reduce((a, b) => {
+            validate: function (body) {
+                const imagesSize = body.getAll("image[]").reduce((a, b) => {
                     return a + b.size
                 }, 0);
 
-                if (!token) {
-                    error = "empty token";
-                } else if (token.length < 40) {
-                    error = "bad token";
-                } else if (!imagesSize) {
-                    error = "empty image";
+                if (!this.token) {
+                    this.errors.push("empty token");
+                } else if (this.token.length < 40) {
+                    this.errors.push("bad token");
+                }
+
+                if (!imagesSize) {
+                    this.errors.push("empty image");
                 } else if (imagesSize > 90 * 1024) {
-                    error = "image is too big";
-                }
-                if (error) {
-                    app.error = error;
-                    return;
+                    this.errors.push("image is too big");
                 }
 
-                const response = await fetch("/view", {
-                    method: "POST",
-                    body: body
-                });
-                if (response.status !== 200) {
-                    app.error = response.statusText;
-                    return;
-                }
-
-                const data = await response.json();
-                if (data.error) {
-                    app.error = data.error;
-                    return;
-                }
-                app.result = data;
+                return !!this.errors.length;
             },
-            select: (e) => {
+            view: async function (e) {
                 e.preventDefault();
 
-                $("#image").click();
+                this.errors = [];
+                this.result = null;
+
+                const body = new FormData(e.target);
+                if (this.validate(body)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch("/view", {
+                        method: "POST",
+                        body: body
+                    });
+                    if (!response.ok) {
+                        throw Error(response.statusText)
+                    }
+
+                    const data = await response.json();
+                    if (data.error) {
+                        throw Error(data.error);
+                    }
+
+                    this.result = data;
+                } catch (error) {
+                    this.errors.push(error.message);
+                }
             },
-            drop: (e) => {
+            select: function (e) {
+                e.preventDefault();
+
+                this.$refs.image.click();
+            },
+            drop: function (e) {
                 e.preventDefault();
 
                 const data = e.dataTransfer;
-                $("#image").files = data.files;
+                this.$refs.image.files = data.files;
             },
-            ignore: (e) => {
+            ignore: function (e) {
                 e.preventDefault();
             }
         }
