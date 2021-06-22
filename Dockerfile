@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y libarchive-zip-perl libposix-strptime-p
 RUN tar xzf Image-ExifTool-12.23.tar.gz && rm -fr Image-ExifTool-12.23.tar.gz
 
 # Set non root user
-RUN useradd -c "user" -m -d /home/user -s /bin/bash user
+RUN useradd -m -d /home/user -s /bin/bash user
 RUN chown -R user:user /home/user
 RUN chmod -R 755 .
 
