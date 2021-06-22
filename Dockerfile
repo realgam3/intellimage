@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.9.5-alpine3.13
 
 # Create app directory
 RUN mkdir -p /app
@@ -11,11 +11,11 @@ RUN pip install -r requirements.txt
 RUN pip install gunicorn
 
 # Install ExifTool
-RUN apt-get update && apt-get install -y libarchive-zip-perl libposix-strptime-perl libunicode-linebreak-perl
+RUN apk add perl
 RUN tar xzf Image-ExifTool-12.23.tar.gz && rm -fr Image-ExifTool-12.23.tar.gz
 
 # Set non root user
-RUN useradd -m -d /home/user -s /bin/bash user
+RUN adduser -D user -h /home/user -s /bin/bash user
 RUN chown -R user:user /home/user
 RUN chmod -R 755 .
 
