@@ -1,14 +1,19 @@
-image: docker:latest
-
-variables:
-  DOCKER_TLS_CERTDIR: "/certs"
-  
+image: realgam3/aws-ecs-base:latest
 services:
   - docker:dind
 
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+
 before_script:
-  - docker info
-#  - docker context create ecs bsidestlv --from-env
+  - ln -s /usr/local/bin/docker /usr/bin/docker
+  - apk add curl
+  - curl -L https://raw.githubusercontent.com/docker/compose-cli/main/scripts/install/install_linux.sh | sh
   - echo $AWS_ECR_REGISTRY_PASSWORD | docker login -u "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
 
 build_image:
@@ -17,7 +22,8 @@ build_image:
     - docker compose --file docker-compose.ecs.yml build
     - docker compose --file docker-compose.ecs.yml push
 
-#deploy_stack:
-#  stage: deploy
-#  script:
-#    - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
+deploy_stack:
+  stage: deploy
+  script:
+    - docker context create ecs bsidestlv --from-env
+    - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
