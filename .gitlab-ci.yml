@@ -14,10 +14,10 @@ before_script:
 build_image:
   stage: build
   script:
-    - docker compose -f docker-compose.ecs.yml build
-    - docker compose -f docker-compose.ecs.yml push
+    - docker compose --file docker-compose.ecs.yml build
+    - docker compose --file docker-compose.ecs.yml push
 
 #deploy_stack:
 #  stage: deploy
 #  script:
-#    - docker --context bsidestlv compose -f docker-compose.ecs.yml up -d
+#    - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
