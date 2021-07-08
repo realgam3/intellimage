@@ -10,7 +10,7 @@ services:
 
 before_script:
 #  - docker context create ecs bsidestlv --from-env
-  - docker login -u "$AWS_ECR_REGISTRY_USER" -p "$AWS_ECR_REGISTRY_PASSWORD" $CI_REGISTRY
+  - echo $AWS_ECR_REGISTRY_PASSWORD | docker login -u "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
 
 build_image:
   stage: build
