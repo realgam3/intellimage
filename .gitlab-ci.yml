@@ -11,9 +11,7 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
 
 before_script:
-  - ln -s /usr/local/bin/docker /usr/bin/docker
-  - apk add curl
-  - curl -L https://raw.githubusercontent.com/docker/compose-cli/main/scripts/install/install_linux.sh | sh
+  - docker context create ecs bsidestlv --from-env
   - echo $AWS_ECR_REGISTRY_PASSWORD | docker login -u "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
 
 build_image:
@@ -25,5 +23,4 @@ build_image:
 deploy_stack:
   stage: deploy
   script:
-    - docker context create ecs bsidestlv --from-env
     - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
