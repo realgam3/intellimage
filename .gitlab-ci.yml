@@ -1,14 +1,13 @@
 image: docker/compose:latest
 
 variables:
-  DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
   
 services:
   - docker:dind
 
 before_script:
+  - docker info
 #  - docker context create ecs bsidestlv --from-env
   - echo $AWS_ECR_REGISTRY_PASSWORD | docker login -u "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
 
