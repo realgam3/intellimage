@@ -1,16 +1,17 @@
-image: realgam3/aws-ecs-base:latest
-services:
-  - docker:dind
-
 stages:
   - build
   - deploy
 
 variables:
-  DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://docker:2375
+  DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
 
+image: realgam3/aws-ecs-base:latest
+services:
+  - docker:dind
+  
 before_script:
   - docker context create ecs bsidestlv --from-env
   - aws ecr get-login-password | docker login --username "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
