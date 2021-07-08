@@ -1,0 +1,24 @@
+image: docker/compose:latest
+
+variables:
+  DOCKER_DRIVER: overlay
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  
+services:
+  - docker:dind
+
+before_script:
+  - docker context create ecs bsidestlv --from-env
+  - docker login -u "$AWS_ECR_REGISTRY_USER" -p "$AWS_ECR_REGISTRY_PASSWORD" $AWS_ECR_REGISTRY
+
+build_image:
+  stage: build
+  script:
+    - docker compose -f docker-compose.ecs.yml build
+    - docker compose -f docker-compose.ecs.yml push
+
+deploy_stack:
+  stage: deploy
+  script:
+    - docker --context bsidestlv compose -f docker-compose.ecs.yml up -d

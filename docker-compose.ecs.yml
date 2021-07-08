@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  challenge:
+    build: .
+    image: ${AWS_ECR_REGISTRY}/${CI_PROJECT_NAME}/challenge
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET: "BSidesTLV2021{Yum_MAC_nd_Ch33s3_PI}"
+    restart: always
