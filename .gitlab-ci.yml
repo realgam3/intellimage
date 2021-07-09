@@ -25,4 +25,5 @@ build_image:
 deploy_stack:
   stage: deploy
   script:
-    - DOCKER_HOST=tcp://docker:2376 docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
+    - docker context use bsidestlv
+    - docker compose --file docker-compose.ecs.yml up -d
