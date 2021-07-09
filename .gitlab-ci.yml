@@ -25,4 +25,4 @@ build_image:
 deploy_stack:
   stage: deploy
   script:
-    - docker compose --context bsidestlv --file docker-compose.ecs.yml up -d
+    - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
