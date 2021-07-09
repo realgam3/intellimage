@@ -2,15 +2,15 @@ stages:
   - build
   - deploy
 
-default:
-  image: realgam3/aws-ecs-base:latest
-  tags:
-    - docker
-
 variables:
-  DOCKER_DRIVER: overlay
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+
+image: realgam3/aws-ecs-base:latest
+services:
+  - docker:dind
   
 before_script:
   - docker context create ecs bsidestlv --from-env
@@ -25,4 +25,4 @@ build_image:
 deploy_stack:
   stage: deploy
   script:
-    - docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
+    - DOCKER_HOST=tcp://docker:2376 docker --context bsidestlv compose --file docker-compose.ecs.yml up -d
