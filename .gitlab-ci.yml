@@ -1,6 +1,10 @@
-stages:
-  - build
-  - deploy
+services:
+  - docker:dind
+
+default:
+  image: realgam3/rancher-compose:latest
+  tags:
+    - docker
 
 variables:
   DOCKER_HOST: tcp://docker:2376
@@ -8,22 +12,17 @@ variables:
   DOCKER_TLS_VERIFY: 1
   DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
 
-image: realgam3/aws-ecs-base:latest
-services:
-  - docker:dind
-  
 before_script:
-  - docker context create ecs bsidestlv --from-env
-  - aws ecr get-login-password | docker login --username "$AWS_ECR_REGISTRY_USER" --password-stdin $AWS_ECR_REGISTRY
+  - rancher-convert -i $CI_REGISTRY_IMAGE
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 
 build_image:
   stage: build
   script:
-    - docker compose --file docker-compose.ecs.yml build
-    - docker compose --file docker-compose.ecs.yml push
+    - docker-compose -f docker-compose.build.yml build
+    - docker-compose -f docker-compose.build.yml push
 
 deploy_stack:
   stage: deploy
   script:
-    - docker context use bsidestlv
-    - docker compose --file docker-compose.ecs.yml up -d
+    - rancher-compose -f docker-compose.deploy.yml up --force-upgrade -c -d
